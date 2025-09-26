@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3I/ATLAS 星际彗星实时追踪</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.birds.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hero-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); }
+        .glass-effect { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
+        .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite alternate; }
+        @keyframes pulse-glow { from { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); } to { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); } }
+        .text-shadow { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+        #vanta-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white overflow-x-hidden">
+    <div id="vanta-bg"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-meteor text-2xl text-blue-400"></i>
+                    <span class="text-xl font-bold">3I/ATLAS Tracker</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#overview" class="hover:text-blue-400 transition-colors">概览</a>
+                    <a href="#live-data" class="hover:text-blue-400 transition-colors">实时数据</a>
+                    <a href="#observations" class="hover:text-blue-400 transition-colors">观测信息</a>
+                    <a href="#resources" class="hover:text-blue-400 transition-colors">资源链接</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-bg min-h-screen flex items-center justify-center pt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="animate-float">
+                <h1 class="text-6xl md:text-8xl font-bold text-shadow mb-6">
+                    <span class="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                        3I/ATLAS
+                    </span>
+                </h1>
+                <p class="text-2xl md:text-3xl text-gray-300 mb-8 text-shadow">
+                    第三个确认的星际访客正在穿越我们的太阳系
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 mb-12">
+                    <div class="glass-effect rounded-lg px-6 py-3 animate-pulse-glow">
+                        <i class="fas fa-rocket mr-2"></i>
+                        <span class="font-semibold">实时追踪</span>
+                    </div>
+                    <div class="glass-effect rounded-lg px-6 py-3">
+                        <i class="fas fa-satellite mr-2"></i>
+                        <span class="font-semibold">NASA数据</span>
+                    </div>
+                    <div class="glass-effect rounded-lg px-6 py-3">
+                        <i class="fas fa-eye mr-2"></i>
+                        <span class="font-semibold">全球观测</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="py-20 bg-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-16 text-blue-400">彗星概览</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-calendar-alt text-4xl text-blue-400 mb-4"></i>
+                        <h3 class="text-xl font-bold">发现时间</h3>
+                    </div>
+                    <p class="text-gray-300 text-center">2025年7月1日由NASA资助的ATLAS项目发现</p>
+                </div>
+                <div class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-globe text-4xl text-green-400 mb-4"></i>
+                        <h3 class="text-xl font-bold">起源</h3>
+                    </div>
+                    <p class="text-gray-300 text-center">来自太阳系外的星际空间，第三个确认的星际物体</p>
+                </div>
+                <div class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-shield-alt text-4xl text-red-400 mb-4"></i>
+                        <h3 class="text-xl font-bold">安全距离</h3>
+                    </div>
+                    <p class="text-gray-300 text-center">对地球无威胁，最近距离约1.8天文单位（2.68亿公里）</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Data Section -->
+    <section id="live-data" class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-16 text-blue-400">实时数据</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Current Position -->
+                <div class="glass-effect rounded-xl p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center">
+                        <i class="fas fa-map-marker-alt text-blue-400 mr-3"></i>
+                        当前位置 (2025年9月26日)
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center py-3 border-b border-white/10">
+                            <span class="text-gray-300">星座</span>
+                            <span class="font-bold text-blue-400">天秤座 (Libra)</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-white/10">
+                            <span class="text-gray-300">赤经</span>
+                            <span class="font-mono text-green-400">14h 36m 28s</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-white/10">
+                            <span class="text-gray-300">赤纬</span>
+                            <span class="font-mono text-green-400">-11° 36' 39"</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-white/10">
+                            <span class="text-gray-300">距离地球</span>
+                            <span class="font-bold text-yellow-400">376,365,534 公里</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-white/10">
+                            <span class="text-gray-300">当前亮度</span>
+                            <span class="font-bold text-purple-400">13.3 等星</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-gray-300">光行时间</span>
+                            <span class="font-mono text-cyan-400">20分56秒</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Events -->
+                <div class="glass-effect rounded-xl p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center">
+                        <i class="fas fa-calendar-check text-green-400 mr-3"></i>
+                        重要事件
+                    </h3>
+                    <div class="space-y-6">
+                        <div class="border-l-4 border-blue-400 pl-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-blue-400">近日点通过</span>
+                                <span class="text-sm text-gray-400">2025年10月29日</span>
+                            </div>
+                            <p class="text-gray-300 text-sm">彗星将到达距离太阳最近的点，距离约1.4天文单位</p>
+                        </div>
+                        <div class="border-l-4 border-green-400 pl-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-green-400">火星接近</span>
+                                <span class="text-sm text-gray-400">2025年10月3日</span>
+                            </div>
+                            <p class="text-gray-300 text-sm">将距离火星约3000万公里，多个火星探测器将进行观测</p>
+                        </div>
+                        <div class="border-l-4 border-purple-400 pl-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-purple-400">地球最近距离</span>
+                                <span class="text-sm text-gray-400">2025年12月19日</span>
+                            </div>
+                            <p class="text-gray-300 text-sm">距离地球约2.68亿公里，完全安全距离</p>
+                        </div>
+                        <div class="border-l-4 border-red-400 pl-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-red-400">太阳背后消失</span>
+                                <span class="text-sm text-gray-400">2025年11月下旬</span>
+                            </div>
+                            <p class="text-gray-300 text-sm">从地球视角看将暂时消失，12月初重新出现</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Observations Section -->
+    <section id="observations" class="py-20 bg-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-16 text-blue-400">观测信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div class="glass-effect rounded-xl p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center">
+                        <i class="fas fa-telescope text-yellow-400 mr-3"></i>
+                        观测条件
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="bg-blue-500/20 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-eye text-blue-400 mr-2"></i>
+                                <span class="font-semibold">可见性</span>
+                            </div>
+                            <p class="text-gray-300">目前需要14英寸（350mm）或更大口径的望远镜才能观测</p>
+                        </div>
+                        <div class="bg-green-500/20 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-map text-green-400 mr-2"></i>
+                                <span class="font-semibold">最佳观测位置</span>
+                            </div>
+                            <p class="text-gray-300">北半球观测者目前可以观测，位于天秤座星座</p>
+                        </div>
+                        <div class="bg-purple-500/20 rounded-lg p-4">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-clock text-purple-400 mr-2"></i>
+                                <span class="font-semibold">观测时间</span>
+                            </div>
+                            <p class="text-gray-300">升起时间：10:14，中天时间：15:12，落下时间：20:11（格林尼治时间）</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-effect rounded-xl p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-center">
+                        <i class="fas fa-satellite text-cyan-400 mr-3"></i>
+                        太空观测任务
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg">
+                            <img src="https://science.nasa.gov/wp-content/uploads/2023/07/hubble-stsci-1-768x432.png" alt="Hubble" class="w-12 h-12 rounded object-cover">
+                            <div>
+                                <div class="font-semibold">哈勃太空望远镜</div>
+                                <div class="text-sm text-gray-400">已多次观测，发现尘埃彗发</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg">
+                            <img src="https://science.nasa.gov/wp-content/uploads/2023/07/webb-stsci-1-768x432.png" alt="Webb" class="w-12 h-12 rounded object-cover">
+                            <div>
+                                <div class="font-semibold">詹姆斯·韦伯望远镜</div>
+                                <div class="text-sm text-gray-400">近红外光谱分析化学成分</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg">
+                            <img src="https://science.nasa.gov/wp-content/uploads/2023/07/spherex-stsci-1-768x432.png" alt="SPHEREx" class="w-12 h-12 rounded object-cover">
+                            <div>
+                                <div class="font-semibold">SPHEREx任务</div>
+                                <div class="text-sm text-gray-400">2025年8月7-15日观测</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg">
+                            <i class="fas fa-rocket text-3xl text-orange-400"></i>
+                            <div>
+                                <div class="font-semibold">火星探测器</div>
+                                <div class="text-sm text-gray-400">火星快车号和TGO将观测</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section id="resources" class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-bold text-center mb-16 text-blue-400">实时追踪资源</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <a href="https://theskylive.com/c2025n1-info" target="_blank" class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300 block">
+                    <div class="text-center">
+                        <i class="fas fa-globe text-4xl text-blue-400 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">TheSkyLive</h3>
+                        <p class="text-gray-300 text-sm">实时位置追踪和详细天文数据</p>
+                    </div>
+                </a>
+                <a href="https://science.nasa.gov/solar-system/comets/3i-atlas/" target="_blank" class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300 block">
+                    <div class="text-center">
+                        <i class="fas fa-rocket text-4xl text-red-400 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">NASA官方页面</h3>
+                        <p class="text-gray-300 text-sm">NASA官方观测数据和任务更新</p>
+                    </div>
+                </a>
+                <a href="https://cobs.si/" target="_blank" class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300 block">
+                    <div class="text-center">
+                        <i class="fas fa-database text-4xl text-green-400 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">COBS数据库</h3>
+                        <p class="text-gray-300 text-sm">全球彗星观测数据库，最新亮度观测</p>
+                    </div>
+                </a>
+                <a href="https://www.esa.int/Science_Exploration/Space_Science/Comet_3I_ATLAS_frequently_asked_questions" target="_blank" class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300 block">
+                    <div class="text-center">
+                        <i class="fas fa-satellite text-4xl text-purple-400 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">ESA问答</h3>
+                        <p class="text-gray-300 text-sm">欧洲空间局的详细问答和背景信息</p>
+                    </div>
+                </a>
+                <a href="https://atlas.fallingstar.com/" target="_blank" class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300 block">
+                    <div class="text-center">
+                        <i class="fas fa-search text-4xl text-yellow-400 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">ATLAS项目</h3>
+                        <p class="text-gray-300 text-sm">发现3I/ATLAS的原始观测项目</p>
+                    </div>
+                </a>
+                <a href="https://www.skyatnightmagazine.com/news/comet-3i-atlas-images" target="_blank" class="glass-effect rounded-xl p-6 hover:glow transition-all duration-300 block">
+                    <div class="text-center">
+                        <i class="fas fa-image text-4xl text-pink-400 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">最新图像</h3>
+                        <p class="text-gray-300 text-sm">来自各大望远镜的最新观测图像</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-white/10 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex items-center justify-center space-x-3 mb-6">
+                <i class="fas fa-meteor text-3xl text-blue-400"></i>
+                <span class="text-2xl font-bold">3I/ATLAS Tracker</span>
+            </div>
+            <p class="text-gray-400 mb-4">实时追踪第三个星际访客穿越太阳系的旅程</p>
+            <p class="text-sm text-gray-500">数据来源：NASA, ESA, ATLAS项目, COBS数据库</p>
+            <div class="mt-6 flex justify-center space-x-6">
+                <a href="https://science.nasa.gov/solar-system/comets/3i-atlas/" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors">
+                    <i class="fab fa-nasa text-2xl"></i>
+                </a>
+                <a href="https://www.esa.int/" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors">
+                    <i class="fas fa-satellite text-2xl"></i>
+                </a>
+                <a href="https://theskylive.com/c2025n1-info" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors">
+                    <i class="fas fa-telescope text-2xl"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Vanta.js background
+        VANTA.BIRDS({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            backgroundColor: 0x0f172a,
+            color1: 0x3b82f6,
+            color2: 0x8b5cf6,
+            colorMode: "variance",
+            birdSize: 1.20,
+            wingSpan: 25.00,
+            speedLimit: 3.00,
+            separation: 20.00,
+            alignment: 20.00,
+            cohesion: 20.00,
+            quantity: 3.00
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            // Update any time displays if needed
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+</html>

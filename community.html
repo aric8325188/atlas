@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3I/ATLAS 社区互动</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.birds.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hero-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); }
+        .glass-effect { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
+        .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite alternate; }
+        @keyframes pulse-glow { from { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); } to { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); } }
+        .text-shadow { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+        #vanta-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .chat-container { height: 500px; overflow-y: auto; }
+        .message { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+        .image-card { transition: transform 0.3s ease; }
+        .image-card:hover { transform: scale(1.05); }
+        .upload-area { border: 2px dashed #3b82f6; transition: all 0.3s ease; }
+        .upload-area:hover { border-color: #8b5cf6; background-color: rgba(59, 130, 246, 0.1); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(45deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .online-indicator { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block; margin-left: 5px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white overflow-x-hidden">
+    <div id="vanta-bg"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-meteor text-2xl text-blue-400"></i>
+                    <span class="text-xl font-bold">3I/ATLAS Tracker</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="hover:text-blue-400 transition-colors">首页</a>
+                    <a href="index.html#live-data" class="hover:text-blue-400 transition-colors">实时数据</a>
+                    <a href="index.html#observations" class="hover:text-blue-400 transition-colors">观测信息</a>
+                    <a href="community.html" class="text-blue-400 font-semibold">社区</a>
+                    <a href="index.html#resources" class="hover:text-blue-400 transition-colors">资源</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-400">在线用户:</span>
+                    <span class="text-blue-400 font-semibold" id="online-count">47</span>
+                    <div class="online-indicator"></div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-bg pt-24 pb-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-shadow mb-6">
+                <span class="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                    彗星观测社区
+                </span>
+            </h1>
+            <p class="text-xl text-gray-300 mb-8 text-shadow">
+                与全球天文爱好者一起分享3I/ATLAS彗星的观测体验
+            </p>
+            <div class="flex justify-center space-x-6">
+                <div class="glass-effect rounded-lg px-6 py-3">
+                    <i class="fas fa-users text-blue-400 mr-2"></i>
+                    <span class="font-semibold">活跃讨论</span>
+                </div>
+                <div class="glass-effect rounded-lg px-6 py-3">
+                    <i class="fas fa-camera text-green-400 mr-2"></i>
+                    <span class="font-semibold">图片分享</span>
+                </div>
+                <div class="glass-effect rounded-lg px-6 py-3">
+                    <i class="fas fa-chart-line text-purple-400 mr-2"></i>
+                    <span class="font-semibold">观测报告</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Chat Section -->
+                <div class="lg:col-span-2">
+                    <div class="glass-effect rounded-xl p-6 mb-8">
+                        <h2 class="text-2xl font-bold mb-6 flex items-center">
+                            <i class="fas fa-comments text-blue-400 mr-3"></i>
+                            实时讨论
+                        </h2>
+                        
+                        <!-- Chat Messages -->
+                        <div class="chat-container mb-6" id="chat-messages">
+                            <!-- Messages will be populated by JavaScript -->
+                        </div>
+                        
+                        <!-- Message Input -->
+                        <div class="flex space-x-4">
+                            <div class="user-avatar">
+                                <span id="current-user-avatar">你</span>
+                            </div>
+                            <div class="flex-1">
+                                <input type="text" id="message-input" placeholder="分享你的观测发现..." 
+                                       class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-400 focus:outline-none">
+                            </div>
+                            <button id="send-message" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Message Options -->
+                        <div class="mt-4 flex space-x-4">
+                            <button id="upload-image-btn" class="text-blue-400 hover:text-blue-300 text-sm">
+                                <i class="fas fa-image mr-1"></i>
+                                分享图片
+                            </button>
+                            <button id="share-observation-btn" class="text-green-400 hover:text-green-300 text-sm">
+                                <i class="fas fa-telescope mr-1"></i>
+                                提交观测报告
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Community Stats -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-chart-bar text-green-400 mr-3"></i>
+                            社区统计
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-400" id="total-messages">1,247</div>
+                                <div class="text-sm text-gray-400">消息总数</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-400" id="shared-images">89</div>
+                                <div class="text-sm text-gray-400">分享图片</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-purple-400" id="observation-reports">156</div>
+                                <div class="text-sm text-gray-400">观测报告</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-yellow-400" id="active-today">23</div>
+                                <div class="text-sm text-gray-400">今日活跃</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="space-y-8">
+                    <!-- Active Users -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-users text-purple-400 mr-3"></i>
+                            活跃用户
+                        </h3>
+                        <div class="space-y-3" id="active-users">
+                            <!-- Users will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Recent Observations -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-star text-yellow-400 mr-3"></i>
+                            最新观测
+                        </h3>
+                        <div class="space-y-4" id="recent-observations">
+                            <!-- Observations will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-4">快速操作</h3>
+                        <div class="space-y-3">
+                            <button id="quick-observation" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-plus mr-2"></i>
+                                快速观测记录
+                            </button>
+                            <button id="quick-image" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-camera mr-2"></i>
+                                上传观测图片
+                            </button>
+                            <button id="quick-report" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-file-alt mr-2"></i>
+                                提交详细报告
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image Upload Modal -->
+    <div id="image-upload-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-effect rounded-xl p-6 max-w-md w-full">
+                <h3 class="text-xl font-bold mb-4">分享观测图片</h3>
+                <div class="upload-area rounded-lg p-8 text-center mb-4">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-blue-400 mb-4"></i>
+                    <p class="text-gray-300 mb-2">拖拽图片到这里或点击上传</p>
+                    <input type="file" id="image-upload" accept="image/*" class="hidden">
+                    <button id="select-image" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
+                        选择图片
+                    </button>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="cancel-upload" class="flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded-lg transition-colors">
+                        取消
+                    </button>
+                    <button id="confirm-upload" class="flex-1 bg-blue-600 hover:bg-blue-700 py-2 rounded-lg transition-colors">
+                        上传
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Observation Report Modal -->
+    <div id="observation-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="glass-effect rounded-xl p-6 max-w-lg w-full max-h-screen overflow-y-auto">
+                <h3 class="text-xl font-bold mb-4">提交观测报告</h3>
+                <form id="observation-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">观测时间</label>
+                        <input type="datetime-local" id="observation-time" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">观测地点</label>
+                        <input type="text" id="observation-location" placeholder="例如：北京天文台" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">使用设备</label>
+                        <input type="text" id="observation-equipment" placeholder="例如：14英寸望远镜" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">亮度估计</label>
+                        <input type="number" id="observation-magnitude" step="0.1" placeholder="例如：13.3" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">备注</label>
+                        <textarea id="observation-notes" rows="3" placeholder="描述你的观测发现..." class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"></textarea>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="button" id="cancel-observation" class="flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded-lg transition-colors">
+                            取消
+                        </button>
+                        <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 py-2 rounded-lg transition-colors">
+                            提交报告
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-white/10 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex items-center justify-center space-x-3 mb-6">
+                <i class="fas fa-meteor text-3xl text-blue-400"></i>
+                <span class="text-2xl font-bold">3I/ATLAS Tracker</span>
+            </div>
+            <p class="text-gray-400 mb-4">连接全球天文爱好者，共同追踪星际访客</p>
+            <p class="text-sm text-gray-500">社区功能测试版 - 分享你的观测体验</p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Vanta.js background
+        VANTA.BIRDS({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            backgroundColor: 0x0f172a,
+            color1: 0x3b82f6,
+            color2: 0x8b5cf6,
+            colorMode: "variance",
+            birdSize: 1.20,
+            wingSpan: 25.00,
+            speedLimit: 3.00,
+            separation: 20.00,
+            alignment: 20.00,
+            cohesion: 20.00,
+            quantity: 3.00
+        });
+
+        // Sample data
+        const sampleUsers = [
+            { name: 'AstroEnthusiast', avatar: 'AE', status: '在线', color: 'bg-blue-500' },
+            { name: 'StarGazer2025', avatar: 'SG', status: '观测中', color: 'bg-green-500' },
+            { name: 'CometHunter', avatar: 'CH', status: '在线', color: 'bg-purple-500' },
+            { name: 'SpaceExplorer', avatar: 'SE', status: '离开', color: 'bg-gray-500' },
+            { name: 'CosmicWatcher', avatar: 'CW', status: '在线', color: 'bg-yellow-500' }
+        ];
+
+        const sampleMessages = [
+            { user: 'AstroEnthusiast', avatar: 'AE', message: '今晚的观测条件很好，看到了彗星尾巴的变化！', time: '2分钟前', type: 'text' },
+            { user: 'StarGazer2025', avatar: 'SG', message: '分享一张刚拍的3I/ATLAS图片', time: '5分钟前', type: 'image' },
+            { user: 'CometHunter', avatar: 'CH', message: '亮度估计在13.2-13.4之间，比预期活跃', time: '8分钟前', type: 'text' },
+            { user: 'SpaceExplorer', avatar: 'SE', message: '提交了新的观测报告，数据已更新', time: '12分钟前', type: 'report' },
+            { user: 'CosmicWatcher', avatar: 'CW', message: '有人注意到彗星颜色的变化吗？', time: '15分钟前', type: 'text' }
+        ];
+
+        const sampleObservations = [
+            { time: '30分钟前', observer: 'AstroEnthusiast', magnitude: '13.2', location: '北京' },
+            { time: '1小时前', observer: 'StarGazer2025', magnitude: '13.4', location: '上海' },
+            { time: '2小时前', observer: 'CometHunter', magnitude: '13.3', location: '广州' },
+            { time: '3小时前', observer: 'SpaceExplorer', magnitude: '13.1', location: '深圳' }
+        ];
+
+        // Initialize page
+        function initializePage() {
+            renderActiveUsers();
+            renderChatMessages();
+            renderRecentObservations();
+            updateCommunityStats();
+        }
+
+        // Render active users
+        function renderActiveUsers() {
+            const container = document.getElementById('active-users');
+            container.innerHTML = sampleUsers.map(user => `
+                <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-800/30 transition-colors">
+                    <div class="user-avatar ${user.color}">
+                        ${user.avatar}
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-sm">${user.name}</div>
+                        <div class="text-xs text-gray-400">${user.status}</div>
+                    </div>
+                    <div class="online-indicator"></div>
+                </div>
+            `).join('');
+        }
+
+        // Render chat messages
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = sampleMessages.map(msg => `
+                <div class="message flex space-x-3 mb-4 p-3 rounded-lg hover:bg-gray-800/20 transition-colors">
+                    <div class="user-avatar bg-blue-500">
+                        ${msg.avatar}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="font-semibold text-sm">${msg.user}</span>
+                            <span class="text-xs text-gray-400">${msg.time}</span>
+                            <span class="text-xs px-2 py-1 rounded-full bg-blue-500/20 text-blue-400">${msg.type}</span>
+                        </div>
+                        <div class="text-gray-300">${msg.message}</div>
+                        <div class="flex space-x-4 mt-2">
+                            <button class="text-xs text-blue-400 hover:text-blue-300">
+                                <i class="fas fa-thumbs-up mr-1"></i>点赞
+                            </button>
+                            <button class="text-xs text-green-400 hover:text-green-300">
+                                <i class="fas fa-reply mr-1"></i>回复
+                            </button>
+                            <button class="text-xs text-purple-400 hover:text-purple-300">
+                                <i class="fas fa-share mr-1"></i>分享
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Render recent observations
+        function renderRecentObservations() {
+            const container = document.getElementById('recent-observations');
+            container.innerHTML = sampleObservations.map(obs => `
+                <div class="bg-gray-800/30 rounded-lg p-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-semibold text-sm">${obs.observer}</span>
+                        <span class="text-xs text-gray-400">${obs.time}</span>
+                    </div>
+                    <div class="text-sm text-gray-300 mb-1">
+                        <i class="fas fa-eye text-blue-400 mr-1"></i>
+                        亮度: ${obs.magnitude} 等星
+                    </div>
+                    <div class="text-sm text-gray-300">
+                        <i class="fas fa-map-marker-alt text-green-400 mr-1"></i>
+                        位置: ${obs.location}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update community stats
+        function updateCommunityStats() {
+            // Simulate dynamic stats
+            document.getElementById('total-messages').textContent = (1247 + Math.floor(Math.random() * 10)).toLocaleString();
+            document.getElementById('shared-images').textContent = (89 + Math.floor(Math.random() * 5));
+            document.getElementById('observation-reports').textContent = (156 + Math.floor(Math.random() * 8));
+            document.getElementById('active-today').textContent = (23 + Math.floor(Math.random() * 5));
+            document.getElementById('online-count').textContent = (47 + Math.floor(Math.random() * 10));
+        }
+
+        // Send message function
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Add message to chat (simulate)
+                const newMessage = {
+                    user: '你',
+                    avatar: '你',
+                    message: message,
+                    time: '刚刚',
+                    type: 'text'
+                };
+                
+                sampleMessages.unshift(newMessage);
+                renderChatMessages();
+                input.value = '';
+                
+                // Simulate response
+                setTimeout(() => {
+                    const responses = [
+                        '很有趣的发现！',
+                        '感谢分享观测数据',
+                        '我也注意到了类似现象',
+                        '这个观察很有价值',
+                        '期待更多更新'
+                    ];
+                    
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    sampleMessages.unshift({
+                        user: sampleUsers[Math.floor(Math.random() * sampleUsers.length)].name,
+                        avatar: sampleUsers[Math.floor(Math.random() * sampleUsers.length)].avatar,
+                        message: randomResponse,
+                        time: '刚刚',
+                        type: 'text'
+                    });
+                    renderChatMessages();
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('send-message').addEventListener('click', sendMessage);
+        document.getElementById('message-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Image upload modal
+        document.getElementById('upload-image-btn').addEventListener('click', () => {
+            document.getElementById('image-upload-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('select-image').addEventListener('click', () => {
+            document.getElementById('image-upload').click();
+        });
+
+        document.getElementById('cancel-upload').addEventListener('click', () => {
+            document.getElementById('image-upload-modal').classList.add('hidden');
+        });
+
+        document.getElementById('confirm-upload').addEventListener('click', () => {
+            // Simulate image upload
+            const newMessage = {
+                user: '你',
+                avatar: '你',
+                message: '分享了一张新的观测图片 📸',
+                time: '刚刚',
+                type: 'image'
+            };
+            
+            sampleMessages.unshift(newMessage);
+            renderChatMessages();
+            document.getElementById('image-upload-modal').classList.add('hidden');
+            
+            // Show success message
+            alert('图片上传成功！');
+        });
+
+        // Observation report modal
+        document.getElementById('share-observation-btn').addEventListener('click', () => {
+            document.getElementById('observation-modal').classList.remove('hidden');
+            // Set current time
+            const now = new Date();
+            const timeString = now.toISOString().slice(0, 16);
+            document.getElementById('observation-time').value = timeString;
+        });
+
+        document.getElementById('cancel-observation').addEventListener('click', () => {
+            document.getElementById('observation-modal').classList.add('hidden');
+        });
+
+        document.getElementById('observation-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Simulate report submission
+            const newMessage = {
+                user: '你',
+                avatar: '你',
+                message: '提交了新的观测报告 📊',
+                time: '刚刚',
+                type: 'report'
+            };
+            
+            sampleMessages.unshift(newMessage);
+            renderChatMessages();
+            document.getElementById('observation-modal').classList.add('hidden');
+            
+            // Show success message
+            alert('观测报告提交成功！');
+            
+            // Reset form
+            document.getElementById('observation-form').reset();
+        });
+
+        // Quick action buttons
+        document.getElementById('quick-observation').addEventListener('click', () => {
+            document.getElementById('share-observation-btn').click();
+        });
+
+        document.getElementById('quick-image').addEventListener('click', () => {
+            document.getElementById('upload-image-btn').click();
+        });
+
+        document.getElementById('quick-report').addEventListener('click', () => {
+            document.getElementById('share-observation-btn').click();
+        });
+
+        // Initialize page
+        initializePage();
+
+        // Update stats every 30 seconds
+        setInterval(updateCommunityStats, 30000);
+
+        // Simulate new messages
+        setInterval(() => {
+            if (Math.random() < 0.3) { // 30% chance every 10 seconds
+                const randomUser = sampleUsers[Math.floor(Math.random() * sampleUsers.length)];
+                const randomMessages = [
+                    '刚刚完成了观测，数据很有趣！',
+                    '天气条件不错，彗星很清晰',
+                    '分享一些最新的观测数据',
+                    '有人一起观测吗？',
+                    '彗星的尾巴看起来更长了'
+                ];
+                
+                sampleMessages.unshift({
+                    user: randomUser.name,
+                    avatar: randomUser.avatar,
+                    message: randomMessages[Math.floor(Math.random() * randomMessages.length)],
+                    time: '刚刚',
+                    type: 'text'
+                });
+                
+                renderChatMessages();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
